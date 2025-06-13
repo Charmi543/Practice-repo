@@ -1,0 +1,43 @@
+pipeline {
+  agent any
+
+  environment {
+    REGION = 'region'
+  }
+
+  stages {
+    stage('Clone Repo') {
+      steps {
+        git branch: 'main', url: '<Your Repo Name>'
+      }
+    }
+
+    stage('Terraform Init') {
+      steps {
+        sh 'terraform init'
+      }
+    }
+
+    stage('Terraform Validate') {
+      steps {
+        sh 'terraform validate'
+      }
+    }
+
+    stage('Terraform Plan') {
+      steps {
+        withAWS(credentials: 'aws-creds-name-provided', region: "${env.REGION}") {
+          sh 'terraform plan'
+        }
+      }
+    }
+
+    stage('Terraform Apply') {
+      steps {
+        withAWS(credentials: 'aws-creds-name-provided', region: "${env.REGION}") {
+          sh 'terraform apply -auto-approve'
+        }
+      }
+    }
+  }
+}
